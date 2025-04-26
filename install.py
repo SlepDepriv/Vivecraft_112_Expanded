@@ -137,6 +137,16 @@ def installAndPatchMcp( mcp_dir ):
     if mcp_exists == False:
         print "No %s directory or zip file found. Please copy the %s.zip file into %s and re-run the command." % (mcp_version, mcp_version, base_dir)
         exit(1)
+    #Remove outdated mcp patches
+    mcppatchesdir = os.path.join(mcp_dir,"conf","patches")
+    if os.path.exists(mcppatchesdir):
+        reallyrmtree(mcppatchesdir)
+
+    # Patch in mcp (if present)
+    mappingsdir = os.path.join(base_dir,"mcppatches","mappings")
+    mappingstarget = os.path.join(mcp_dir)
+    if os.path.exists(mappingsdir):
+        distutils.dir_util.copy_tree(mappingsdir, mappingstarget);
 
     # Use fixed fernflower.jar
     ff_jar_source_path = os.path.join(base_dir, "mcppatches", "fernflower-opt-fix.jar")
@@ -241,8 +251,8 @@ def download_deps( mcp_dir, download_mc, forgedep=False ):
 
     json_obj = []
     with open(source_json_file,"rb") as f:
-        # data=f.read()
-        # print 'JSON File:\n%s' % data
+        #data=f.read()
+        #print 'JSON File:\n%s' % data
         json_obj = json.load( f )
     try:
         newlibs = []
@@ -322,15 +332,11 @@ def download_deps( mcp_dir, download_mc, forgedep=False ):
         raise
 
     if download_mc == True:
+        jar_url = "https://piston-data.mojang.com/v1/objects/0f275bc1547d01fa5f56ba34bdc87d981ee12daf/client.jar"
+        jar_file = os.path.join(versions,mc_version+".jar")
+        download_file( jar_url, jar_file, mc_file_md5 )
+        shutil.copy(jar_file,os.path.join(flat_lib_dir, os.path.basename(jar_file)))
         jar_file = os.path.join(versions, mc_version + ".jar")
-        if not os.path.exists(jar_file):
-            jar_url = "https://piston-data.mojang.com/v1/objects/0f275bc1547d01fa5f56ba34bdc87d981ee12daf/client.jar"
-            temp_jar_file = os.path.join(versions, "client.jar")
-            download_file(jar_url, temp_jar_file, mc_file_md5)
-            os.rename(temp_jar_file, jar_file)
-            shutil.copy(jar_file, os.path.join(flat_lib_dir, os.path.basename(jar_file)))
-        else:
-            print("Skipping download, file already exists:", jar_file)
 
         if mc_file_md5 == "":
             mc_md5 = get_md5( jar_file )
@@ -509,8 +515,10 @@ def main(mcp_dir):
         shutil.rmtree( org_src_dir, True )
     #cleanup expected hunk failure artifacts
     print("Cleaning up...")
-    removeFilesByMatchingPattern(src_dir,"*~")
-    removeFilesByMatchingPattern(src_dir,"*#")
+    if not nocompilefixpatch:
+        removeFilesByMatchingPattern(src_dir,"*~")
+        removeFilesByMatchingPattern(src_dir,"*#")
+        removeFilesByMatchingPattern(src_dir,"*.rej")
 
     #Copy to org
     shutil.copytree( src_dir, org_src_dir )
@@ -557,7 +565,7 @@ def main(mcp_dir):
             applychanges( mcp_dir, patch_dir="mcppatches/patches", backup=False, copyOriginal=False, mergeInNew=False )
         else:
             print("Applying full Vivecraft patches...")
-        applychanges( mcp_dir )
+            applychanges( mcp_dir )
     else:
         print("Apply patches skipped!")
 
