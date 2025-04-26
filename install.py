@@ -14,7 +14,7 @@ from tempfile import mkstemp
 from os import remove, close
 from minecriftversion import mc_version, of_file_name, minecrift_version_num, \
     minecrift_build, of_file_extension, of_file_md5, of_build_md5, mcp_version, mc_file_md5, \
-    mcp_download_url, mcp_uses_generics 
+    mcp_download_url, mcp_uses_generics
 from hashlib import md5  # pylint: disable-msg=E0611
 from optparse import OptionParser
 from applychanges import applychanges, apply_patch
@@ -31,7 +31,7 @@ nocompilefixpatch = False
 clean = False
 force = False
 dependenciesOnly = False
-includeForge = False
+includeForge = True
 
 try:
     WindowsError
@@ -76,8 +76,8 @@ def download_file(url, target, md5=None):
             download = False
     else:
         print 'File Exists: %s' % os.path.basename(target)
-        download = False 
-        
+        download = False
+
     if download is True:
         print 'Downloading: %s' % os.path.basename(target)
         try:
@@ -109,7 +109,7 @@ def download_native(url, folder, name):
 
     return True
 
-def is_non_zero_file(fpath):  
+def is_non_zero_file(fpath):
     return True if os.path.isfile(fpath) and os.path.getsize(fpath) > 0 else False
 
 def installAndPatchMcp( mcp_dir ):
@@ -137,24 +137,14 @@ def installAndPatchMcp( mcp_dir ):
     if mcp_exists == False:
         print "No %s directory or zip file found. Please copy the %s.zip file into %s and re-run the command." % (mcp_version, mcp_version, base_dir)
         exit(1)
-    #Remove outdated mcp patches
-    mcppatchesdir = os.path.join(mcp_dir,"conf","patches")
-    if os.path.exists(mcppatchesdir):
-        reallyrmtree(mcppatchesdir)
-        
-    # Patch in mcp (if present)
-    mappingsdir = os.path.join(base_dir,"mcppatches","mappings")
-    mappingstarget = os.path.join(mcp_dir)
-    if os.path.exists(mappingsdir):
-        distutils.dir_util.copy_tree(mappingsdir, mappingstarget);
-       
+
     # Use fixed fernflower.jar
     ff_jar_source_path = os.path.join(base_dir, "mcppatches", "fernflower-opt-fix.jar")
     ff_jar_dest_path = os.path.join(mcp_dir,"runtime","bin","fernflower.jar")
     if os.path.exists(ff_jar_source_path):
         print 'Updating fernflower.jar: copying %s to %s' % (ff_jar_source_path, ff_jar_dest_path)
         shutil.copy(ff_jar_source_path,ff_jar_dest_path)
-    
+
     # Setup the appropriate mcp file versions
     mcp_version_cfg = os.path.join(mcp_dir,"conf","version.cfg")
     replacelineinfile( mcp_version_cfg, "ClientVersion =", "ClientVersion = %s\n" % mc_version );
@@ -175,7 +165,7 @@ def installAndPatchMcp( mcp_dir ):
         replacelineinfile( target_start_java_file, "args = concat(new String[] {\"--version\", \"mcp\"", "        args = concat(new String[] {\"--version\", \"mcp\", \"--accessToken\", \"0\", \"--assetsDir\", \"assets\", \"--assetIndex\", \"%s\", \"--userProperties\", \"{}\"}, args);\n" % mc_version );
 
 
-        
+
 def download_deps( mcp_dir, download_mc, forgedep=False ):
 
     jars = os.path.join(mcp_dir,"jars")
@@ -201,7 +191,7 @@ def download_deps( mcp_dir, download_mc, forgedep=False ):
 
     mkdir_p( flat_lib_dir )
     mkdir_p( flat_native_dir )
-     
+
     # Get minecrift json file
     json_file = os.path.join(versions,mc_version+".json")
     if forgedep is False:
@@ -210,16 +200,16 @@ def download_deps( mcp_dir, download_mc, forgedep=False ):
         shutil.copy(source_json_file,json_file)
     else:
         source_json_file = os.path.join("installer",mc_version+"-forge.json")
-    
+
     # Use optifine json name for destination dir and jar names
     optifine_dest_dir = os.path.join(jars,"libraries","optifine","OptiFine",of_file_name )
     mkdir_p( optifine_dest_dir )
-   
+
     if not nomerge:
         print 'Checking Optifine...'
         optifine_jar = "OptiFine-"+of_file_name+".jar"
         optifine_dest_file = os.path.join( optifine_dest_dir, optifine_jar )
-    
+
         download_optifine = False
         optifine_md5 = ''
         if not is_non_zero_file( optifine_dest_file ):
@@ -233,8 +223,8 @@ def download_deps( mcp_dir, download_mc, forgedep=False ):
                 print 'Bad MD5!'
             else:
                 print 'MD5 good!'
-        
-        if download_optifine: 
+
+        if download_optifine:
             # Use optifine filename for URL
             optifine_url = "http://vivecraft.org/jar/build/OptiFine-"+of_file_name+of_file_extension
             print 'Downloading Optifine from ' + optifine_url
@@ -243,16 +233,16 @@ def download_deps( mcp_dir, download_mc, forgedep=False ):
                 sys.exit(1)
             else:
                 shutil.copy(optifine_dest_file,os.path.join(flat_lib_dir, os.path.basename(optifine_dest_file)))
-                
+
         if of_build_md5 == "":
             optifine_md5 = get_md5( optifine_dest_file )
             print 'Optifine md5: %s' % optifine_md5
             sys.exit(0)
-   
+
     json_obj = []
     with open(source_json_file,"rb") as f:
-        #data=f.read()
-        #print 'JSON File:\n%s' % data
+        # data=f.read()
+        # print 'JSON File:\n%s' % data
         json_obj = json.load( f )
     try:
         newlibs = []
@@ -271,7 +261,7 @@ def download_deps( mcp_dir, download_mc, forgedep=False ):
             if skip:
                 print 'File: %s\nSkipping due to rules' % libname
                 continue
-                
+
             group,artifact,version = lib["name"].split(":")
             if "url" in lib:
                 repo = lib["url"]
@@ -283,6 +273,15 @@ def download_deps( mcp_dir, download_mc, forgedep=False ):
             else:
                 url = group.replace(".","/")+ "/"+artifact+"/"+version +"/"+artifact+"-"+version+".jar"
 
+            #SD Quick and dirty forge download fix
+            if libname == "net.minecraftforge:forge:1.12.2-14.23.5.2854":
+                repo = "http://files.minecraftforge.net/"
+                url = "maven/net/minecraftforge/forge/1.12.2-14.23.5.2860/forge-1.12.2-14.23.5.2860-universal.jar"
+
+            #SD I want to vomit but if it works it works
+            if libname in ("org.ow2.asm:asm-debug-all:5.2", "org.jline:jline:3.5.1", "com.typesafe.akka:akka-actor_2.11:2.3.3", "com.typesafe:config:1.2.1", "org.scala-lang:scala-actors-migration_2.11:1.1.0", "org.scala-lang:scala-compiler:2.11.1", "org.scala-lang.plugins:scala-continuations-library_2.11:1.0.2_mc", "org.scala-lang.plugins:scala-continuations-plugin_2.11.1:1.0.2_mc", "org.scala-lang:scala-library:2.11.1", "org.scala-lang:scala-parser-combinators_2.11:1.0.1", "org.scala-lang:scala-reflect:2.11.1", "org.scala-lang:scala-swing_2.11:1.0.1", "org.scala-lang:scala-xml_2.11:1.0.2", "org.apache.maven:maven-artifact:3.5.3"):
+                repo = "https://maven.minecraftforge.net/"
+
             index = url.find('${arch}')
             if index > -1:
                 # Get both 32 and 64 bit versions
@@ -291,12 +290,12 @@ def download_deps( mcp_dir, download_mc, forgedep=False ):
                 mkdir_p(os.path.dirname(file32))
                 download_file( repo + url32, file32 )
                 shutil.copy(file32,os.path.join(flat_lib_dir, os.path.basename(file32)))
-                
+
                 url64 = url.replace('${arch}', '64')
                 file64 = os.path.join(jars,"libraries",url64.replace("/",os.sep))
                 mkdir_p(os.path.dirname(file64))
                 download_file(repo + url64, file64)
-                shutil.copy(file64,os.path.join(flat_lib_dir, os.path.basename(file64)))                
+                shutil.copy(file64,os.path.join(flat_lib_dir, os.path.basename(file64)))
 
                 # Use preferred architecture to choose which natives to extract.
                 if preferredarch is '32':
@@ -304,15 +303,15 @@ def download_deps( mcp_dir, download_mc, forgedep=False ):
                     extractnatives( lib, jars, file32, flat_native_dir )
                 else:
                     print '    Using preferred arch 64bit'
-                    extractnatives( lib, jars, file64, flat_native_dir )                
-               
+                    extractnatives( lib, jars, file64, flat_native_dir )
+
             else:
                 file = os.path.join(jars,"libraries",url.replace("/",os.sep))
                 mkdir_p(os.path.dirname(file))
                 if download_file( repo + url, file ) == True:
-                    shutil.copy(file,os.path.join(flat_lib_dir, os.path.basename(file)))  
+                    shutil.copy(file,os.path.join(flat_lib_dir, os.path.basename(file)))
                     extractnatives( lib, jars, file, flat_native_dir )
-                
+
             newlibs.append( lib )
         json_obj['libraries'] = newlibs
         if forgedep is False:
@@ -323,16 +322,20 @@ def download_deps( mcp_dir, download_mc, forgedep=False ):
         raise
 
     if download_mc == True:
-        repo = "https://s3.amazonaws.com/Minecraft.Download/"
-        jar_file = os.path.join(versions,mc_version+".jar")
-        jar_url = repo + "versions/"+mc_version+"/"+mc_version+".jar"
-        download_file( jar_url, jar_file, mc_file_md5 )
-        shutil.copy(jar_file,os.path.join(flat_lib_dir, os.path.basename(jar_file))) 
-        
+        jar_file = os.path.join(versions, mc_version + ".jar")
+        if not os.path.exists(jar_file):
+            jar_url = "https://piston-data.mojang.com/v1/objects/0f275bc1547d01fa5f56ba34bdc87d981ee12daf/client.jar"
+            temp_jar_file = os.path.join(versions, "client.jar")
+            download_file(jar_url, temp_jar_file, mc_file_md5)
+            os.rename(temp_jar_file, jar_file)
+            shutil.copy(jar_file, os.path.join(flat_lib_dir, os.path.basename(jar_file)))
+        else:
+            print("Skipping download, file already exists:", jar_file)
+
         if mc_file_md5 == "":
             mc_md5 = get_md5( jar_file )
             print '%s md5: %s' % ( os.path.basename(jar_file), mc_md5 )
-            sys.exit(0)	
+            sys.exit(0)
 
 def extractnatives( lib, jars, file, copydestdir ):
     if "natives" in lib:
@@ -348,7 +351,7 @@ def extractnatives( lib, jars, file, copydestdir ):
                 out.write(zip.read(name))
                 out.flush()
                 out.close()
-                shutil.copy(out_file,os.path.join(copydestdir, os.path.basename(out_file))) 
+                shutil.copy(out_file,os.path.join(copydestdir, os.path.basename(out_file)))
 
 def zipmerge( target_file, source_file ):
     out_file, out_filename = tempfile.mkstemp()
@@ -359,12 +362,12 @@ def zipmerge( target_file, source_file ):
         print 'zipmerge: target not a zip-file: %s' % target_file
         raise
 
-    try:        
+    try:
         source = zipfile.ZipFile( source_file, 'r' )
     except Exception as e:
         print 'zipmerge: source not a zip-file: %s' % source_file
         raise
-        
+
     #source supersedes target
     source_files = set( source.namelist() )
     target_files = set( target.namelist() ) - source_files
@@ -424,7 +427,7 @@ def main(mcp_dir):
             print 'SKIPPING Apply compile fix patches'
         if nopatch is True:
             print 'SKIPPING Apply Minecrift patches'
-        
+
     if clean == True:
         print 'Cleaning...'
         if force == False:
@@ -438,7 +441,7 @@ def main(mcp_dir):
             answer = raw_input('If you really want to clean up, enter "Yes" ')
             if answer.lower() not in ['yes']:
                 print 'You have not entered "Yes", aborting the clean up process'
-                sys.exit(1)        
+                sys.exit(1)
         print 'Cleaning mcp dir...'
         reallyrmtree(mcp_dir)
         print 'Cleaning lib dir...'
@@ -467,7 +470,7 @@ def main(mcp_dir):
         zipmerge( minecraft_jar, optifine )
     else:
         print("Skipping Optifine merge!")
-    
+
     print("Decompiling...")
     src_dir = os.path.join(mcp_dir, "src","minecraft")
     if os.path.exists( src_dir ):
@@ -478,7 +481,7 @@ def main(mcp_dir):
 
     # This *has* to sync with the default options used in <mcpdir>/runtime/decompile.py for
     # the currently used version of MCP
-    
+
     decompile(conffile=None,      # -c
               force_jad=False,    # -j
               force_csv=False,    # -s
@@ -506,17 +509,15 @@ def main(mcp_dir):
         shutil.rmtree( org_src_dir, True )
     #cleanup expected hunk failure artifacts
     print("Cleaning up...")
-    if not nocompilefixpatch:
-        removeFilesByMatchingPattern(src_dir,"*~")
-        removeFilesByMatchingPattern(src_dir,"*#")
-        removeFilesByMatchingPattern(src_dir,"*.rej")
-        
+    removeFilesByMatchingPattern(src_dir,"*~")
+    removeFilesByMatchingPattern(src_dir,"*#")
+
     #Copy to org
     shutil.copytree( src_dir, org_src_dir )
 
     if nocompilefixpatch == False:
         compile_error_patching_done = False
-        
+
         # Patch stage 1: apply only the patches needed to correct the
         # optifine merge decompile errors
         mcp_patch_dir = os.path.join( base_dir, "mcppatches", "patches" )
@@ -524,11 +525,11 @@ def main(mcp_dir):
             print("Patching Optifine merge decompile errors...")
             applychanges( mcp_dir, patch_dir="mcppatches/patches", backup=False, copyOriginal=False, mergeInNew=False )
             compile_error_patching_done = True
-        
+
         # Address problem files - copy over directly
         problem_file_dir = os.path.join( base_dir, "mcppatches", "problemfiles" )
         if os.path.exists( problem_file_dir ):
-            print("Addressing problem files...")        
+            print("Addressing problem files...")
             xp_problem_file = os.path.join(problem_file_dir, "xp.java")
             shutil.copy( xp_problem_file, os.path.join( mcp_dir, "src", "minecraft", "net", "minecraft", "src", "xp.java" ) )
             chunkrenderdispatcher_problem_file = os.path.join(problem_file_dir, "ChunkRenderDispatcher.java")
@@ -547,7 +548,7 @@ def main(mcp_dir):
             if os.path.exists( org_src_dir ):
                 shutil.rmtree( org_src_dir, True )
                 shutil.copytree( src_dir, org_src_dir )
-                
+
     if nopatch == False:
         # Patch stage 2: Now apply our main Minecrift patches, only
         # changes needed for Minecrift functionality
@@ -556,7 +557,7 @@ def main(mcp_dir):
             applychanges( mcp_dir, patch_dir="mcppatches/patches", backup=False, copyOriginal=False, mergeInNew=False )
         else:
             print("Applying full Vivecraft patches...")
-            applychanges( mcp_dir )
+        applychanges( mcp_dir )
     else:
         print("Apply patches skipped!")
 
@@ -595,7 +596,7 @@ def rmtree_onerror(func, path, _):
         func(path)
     except OSError:
         pass
-        
+
 def replacelineinfile(file_path, pattern, subst, firstmatchonly=False):
     #Create temp file
     fh, abs_path = mkstemp()
@@ -603,7 +604,7 @@ def replacelineinfile(file_path, pattern, subst, firstmatchonly=False):
     old_file = open(file_path,'rb')
     hit = False
     for line in old_file:
-        if pattern in line and not (firstmatchonly == True and hit == True): 
+        if pattern in line and not (firstmatchonly == True and hit == True):
             new_file.write(subst)
             hit = True
         else:
@@ -616,7 +617,7 @@ def replacelineinfile(file_path, pattern, subst, firstmatchonly=False):
     remove(file_path)
     #Move new file
     move(abs_path, file_path)
-    
+
 def removeFilesByMatchingPattern(dirPath, pattern):
     listOfFilesWithError = []
     for parentDir, dirnames, filenames in os.walk(dirPath):
@@ -626,9 +627,9 @@ def removeFilesByMatchingPattern(dirPath, pattern):
             except:
                 print("Error while deleting file : ", os.path.join(parentDir, filename))
                 listOfFilesWithError.append(os.path.join(parentDir, filename))
- 
+
     return listOfFilesWithError
-    
+
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('-o', '--no-optifine', dest='nomerge', default=False, action='store_true', help='If specified, no optifine merge will be carried out')
@@ -648,26 +649,26 @@ if __name__ == '__main__':
             preferredarch = '32'
         elif options.arch is '64':
             preferredarch = '64'
-            
+
     if preferredarch is '':
         preferredarch = osArch()
 
-        
+
     nomerge = options.nomerge
     nopatch = options.nopatch
     testpatches = options.testpatches
     nocompilefixpatch = options.nocompilefixpatch
 
-    if testpatches: 
+    if testpatches:
         nopatch=False
-        nomerge=False   
+        nomerge=False
         nocompilefixpatch=True
-        
+
     if nomerge: nocompilefixpatch = True
     clean = options.clean
     force = options.force
     dependenciesOnly = options.dep
-    
+
     if not options.mcp_dir is None:
         main(os.path.abspath(options.mcp_dir))
     elif os.path.isfile(os.path.join('..', 'runtime', 'commands.py')):
