@@ -1,28 +1,22 @@
-*.DS_Store
-*~
-.directory
-.*.swp
-/logs/
-/*.pyc
-/mcp9*/
-.idea/
-*.iml
-releases/
-*zip
-*.class
-*-install*.jar
-*install*.exe
-patches/Start.java.patch
-installer/out/
-/lib
-patchsrc/
+# eclipse
+bin
+*.launch
+.settings
+.metadata
+.classpath
+.project
 
-src/JRift
-bin/intelij_prod
-optionsvrprofiles.txt
-crash-reports/
-saves/
-jars/
-*.ex_
-mcppatches - Copy/
-hs_err_pid*.log
+# idea
+out
+*.ipr
+*.iws
+*.iml
+.idea
+
+# gradle
+build
+.gradle
+
+# other
+eclipse
+run

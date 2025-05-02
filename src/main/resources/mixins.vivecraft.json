@@ -1,0 +1,28 @@
+{
+	"package": "org.vivecraft.mixin",
+	"required": true,
+	"refmap": "mixins.vivecraft.refmap.json",
+	"target": "@env(DEFAULT)",
+	"minVersion": "0.8.5",
+	"compatibilityLevel": "JAVA_8",
+	"mixins": [
+      "minecraft.vr_user.client.MixinMinecraftVR",
+      "minecraft.vr_user.client.renderer.MixinEntityRendererVR",
+      "minecraft.vr_user.client.gui.MixinGUIIngameVR",
+      "minecraft.vr_user.client.settings.MixinGameSettingsVR",
+      "minecraft.vr_user.client.audio.MixinSoundHandlerVR",
+      "minecraft.vr_user.client.gui.MixinGUIScreenVR",
+      "minecraft.vr_user.client.renderer.MixinRenderGlobalVR",
+      "minecraft.vr_user.client.MixinLoadingScreenRendererVR",
+      "minecraft.vr_user.client.entity.MixinEntityPlayerSPVR",
+      "minecraft.vr_user.client.network.MixinNetHandlerPlayClientVR",
+      "minecraft.vr_user.client.multiplayer.MixinPlayerControllerMPVR",
+      "minecraft.vr_user.client.renderer.MixinItemRendererVR",
+      "minecraft.vr_user.client.renderer.MixinRenderItemVR",
+      "minecraft.vr_user.entity.MixinEntityVR",
+      "minecraft.vr_user.util.MixinMovementInputFromOptionsVR",
+      "minecraft.vr_user.client.gui.MixinGuiMainMenuVR"
+	],
+	"server": [],
+	"client": []
+}
